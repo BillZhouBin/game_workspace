@@ -1,0 +1,16 @@
+{
+  "name": "热气球大冒险",
+  "short_name": "热气球",
+  "description": "躲避栅栏、收集金币的休闲小游戏",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ff6b5e",
+  "theme_color": "#ff6b5e",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
