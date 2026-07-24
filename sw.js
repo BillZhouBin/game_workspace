@@ -2,11 +2,12 @@
 // Service Worker — 热气球大冒险
 // 策略：
 //   • HTML 文档 → network-first（保证用户拿到最新页面，离线时回退缓存）
-//   • 静态资源 → cache-first（快速加载，SW 更新时自动清理旧缓存）
-// 更新资源后只需改 CACHE 版本号，旧缓存会在 activate 阶段被清除。
+//   • 静态资源(game.js/图片) → stale-while-revalidate
+//     （先秒开缓存，后台静默拉取最新并刷新缓存；用户下次刷新必定拿到新版，无需手动 bump 版本号）
+// CACHE 版本号仅用于隔离不同大版本的缓存。
 // ============================================================
 
-const CACHE = 'balloon-v2';
+const CACHE = 'balloon-v3';
 
 // 预缓存：核心资源（安装时即缓存，保证离线可用）
 const PRECACHE = [
@@ -75,15 +76,16 @@ self.addEventListener('fetch', function (e) {
         })
     );
   } else {
-    // cache-first：静态资源优先用缓存，缓存未命中时走网络并缓存
+    // stale-while-revalidate：先返回缓存（秒开），同时后台静默拉取最新版本并刷新缓存
     e.respondWith(
-      caches.match(e.request).then(function (r) {
-        if (r) return r;
-        return fetch(e.request).then(function (resp) {
-          var cp = resp.clone();
-          caches.open(CACHE).then(function (c) { c.put(e.request, cp); });
-          return resp;
-        }).catch(function () { return caches.match('./'); });
+      caches.open(CACHE).then(function (cache) {
+        return cache.match(e.request).then(function (cached) {
+          var network = fetch(e.request).then(function (resp) {
+            if (resp && resp.status === 200) cache.put(e.request, resp.clone());
+            return resp;
+          }).catch(function () { return cached; });
+          return cached || network;
+        });
       })
     );
   }
