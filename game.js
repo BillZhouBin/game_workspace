@@ -32,6 +32,8 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     if (balloon) {
       balloon.r = Math.max(20, Math.min(W, H) * 0.055);
+      laneY = H * 0.74;            // 热气球固定高度，只能左右移动
+      balloon.y = laneY;          // 锁定高度
     }
   }
   window.addEventListener('resize', resize);
@@ -42,6 +44,7 @@
   let best = +(localStorage.getItem('hab_best') || 0);
 
   const balloon = { x: 0, y: 0, r: 24, immune: 0, magnet: 0 }; // immune/magnet: 剩余秒数
+  let laneY = 0; // 热气球固定所在的水平高度（只能左右移动躲避）
   let obstacles = [];   // 栅栏 {y, h, gapX, gapW}
   let coins = [];       // 金币 {x, y, r, got}
   let powers = [];      // 道具 {x, y, r, t, type}
@@ -179,7 +182,7 @@
     distSinceObs = 0; coinTimer = 0; powerTimer = 4 + Math.random() * 4; magnetTimer = 14 + Math.random() * 8; flash = 0;
     balloon.r = Math.max(20, Math.min(W, H) * 0.055);
     balloon.x = W / 2;
-    balloon.y = H * 0.62;
+    balloon.y = laneY;          // 固定高度，仅左右移动
     balloon.immune = 0; balloon.magnet = 0;
     readyEl.classList.add('hidden');
     overEl.classList.add('hidden');
@@ -203,8 +206,9 @@
     return { x: p.clientX - r.left, y: p.clientY - r.top };
   }
   function moveTo(p) {
+    // 只能左右移动：x 跟随手指，y 锁定在固定高度
     balloon.x = Math.max(balloon.r, Math.min(W - balloon.r, p.x));
-    balloon.y = Math.max(balloon.r, Math.min(H - balloon.r, p.y));
+    balloon.y = laneY;
   }
   function onDown(e) {
     e.preventDefault();
